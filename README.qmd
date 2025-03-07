@@ -1,11 +1,13 @@
 ---
 format: gfm
+bibliography: information_structure.bib
 execute: 
   echo: false
   message: false
   warning: false
   fig-dpi: 300
   fig-asp: 0.56
+  out-width: "100%"
 ---
 
 ```{r}
@@ -41,23 +43,31 @@ for(i in min_year:max_year){
   
   res <- scopus_search(
     query = paste(
-      "TITLE-ABS-KEY({information structure} OR {information packaging} OR topic OR 
-           focus OR {information focus} OR {contrastive focus} OR 
-           {new information} OR {old information} OR given OR givenness OR 
-           {discourse anaphor} OR contrastiveness OR presupposition ) AND 
+      "TITLE-ABS-KEY({information structure} OR {information packaging} OR 
+        topic OR focus OR {information focus} OR {contrastive focus} OR
+        {new information} OR {old information} OR given OR givenness OR 
+        {discourse anaphor} OR contrastiveness OR presupposition OR 
+        theme OR rheme OR {presentational focus}) AND 
        EXACTSRCTITLE({Discourse Processes} OR {Journal of Pragmatics} OR 
-           {Psychological Science} OR {Journal of Phonetics} OR 
-           {Journal of Experimental Linguistics} OR 
-           {Applied Psycholinguistics} OR {Second Language Research} OR 
-           {Studies in Second Language Acquisition} OR 
-           {Bilingualism: Language and Cognition} OR 
-           {The Quarterly Journal of Experimental Psychology} OR 
-           {Cognition} OR {Journal of Memory and Language} OR 
-           {Journal of Experimental Psychology} OR 
-           {Learning, Memory, and Cognition} OR 
-           {Language, Cognition, and Neuroscience} OR 
-           {Behavioral and Brain Science} OR {Glossa} OR 
-           {Glossa Psycholinguistics}) AND
+         {Psychological Science} OR {Journal of Phonetics} OR 
+         {Journal of Experimental Linguistics} OR 
+         {Applied Psycholinguistics} OR {Second Language Research} OR 
+         {Studies in Second Language Acquisition} OR 
+         {Bilingualism: Language and Cognition} OR 
+         {The Quarterly Journal of Experimental Psychology} OR 
+         {Cognition} OR {Journal of Memory and Language} OR 
+         {Journal of Experimental Psychology} OR 
+         {Learning, Memory, and Cognition} OR 
+         {Language, Cognition, and Neuroscience} OR 
+         {Behavioral and Brain Science} OR {Glossa} OR 
+         {Glossa Psycholinguistics} OR {Linguistic Approaches to Bilingualism} OR 
+         {Journal of Linguistics} OR {Natural Language and Linguistic Theory} OR 
+         {Linguistic Inquiry} OR {Probus} OR 
+         {Language, Cognition and Neuroscience} OR 
+         {Annual Review of Linguistics} OR {Frontiers in Language Science} OR 
+         {Frontiers in Psychology} OR {Languages} OR {Language} OR 
+         {Borealis} OR {Studia Linguistica} OR {Acta Linguistica Hungarica} OR 
+         {Linguistics} OR {Frontiers in Psychology}) AND
        PUBYEAR = ", i, "AND 
        SRCTYPE(j)"
     ),
@@ -85,7 +95,7 @@ out_df |>
 #| label: tidy-data
 #| eval: false
 
-src_is <- read_csv(here("data", "raw", "2025-02-28_scopus_out.csv")) |>
+src_is <- read_csv(here("data", "raw", "2025-03-06_scopus_out.csv")) |>
   select(
     title =  'dc:title',
     author = 'dc:creator',
@@ -109,30 +119,199 @@ src_is <- read_csv(here("data", "raw", "2025-02-28_scopus_out.csv")) |>
 ```{r}
 #| label: play
 
-journal_filter <- c(
-  "Discourse Processes" = "Discourse Processes",
-  "Journal of Pragmatics" = "Journal of Pragmatics",
-  "Psychological Science" = "Psychological Science",
-  "Journal of Phonetics" = "Journal of Phonetics",
-  "Journal of Experimental Linguistics" = "Journal of Experimental\nLinguistics",
-  "Applied Psycholinguistics" = "Applied\nPsycholinguistics",
-  "Second Language Research" = "Second Language\nResearch",
-  "Studies in Second Language Acquisition" = "Studies in Second\nLanguage Acquisition",
-  "Bilingualism: Language and Cognition" = "Bilingualism: Language and Cognition",
-  "The Quarterly Journal of Experimental Psychology" = "The Quarterly Journal\nof Experimental Psychology",
-  "Cognition" = "Cognition",
-  "Journal of Memory and Language" = "Journal of Memory\nand Language",
-  "Journal of Experimental Psychology" = "Journal of Experimental\nPsychology",
-  "Learning, Memory, and Cognition" = "Learning, Memory,\nand Cognition",
-  "Language, Cognition, and Neuroscience" = "Language, Cognition,\nand Neuroscience",
-  "Behavioral and Brain Science" = "Behavioral and Brain Science",
-  "Glossa" = "Glossa",
-  "Glossa Psycholinguistics" = "Glossa Psycholinguistics"
+journal_list <- list(
+  j1 = list(
+    journal = "Discourse Processes", 
+    label = "Discourse Processes", 
+    type = "experimental"
+  ), 
+  j2 = list(
+    journal = "Journal of Pragmatics", 
+    label = "Journal of Pragmatics", 
+    type = "experimental"
+  ), 
+  j3 = list(
+    journal = "Psychological Science", 
+    label = "Psychological Science", 
+    type = "experimental"
+  ), 
+  j4 = list(
+    journal = "Journal of Phonetics", 
+    label = "Journal of Phonetics",
+    type = "experimental"
+  ), 
+  j5 = list(
+    journal = "Journal of Experimental Linguistics", 
+    label = "Journal of Experimental\nLinguistics", 
+    type = "experimental"
+  ), 
+  j6 = list(
+    journal = "Applied Psycholinguistics", 
+    label = "Applied\nPsycholinguistics",
+    type = "experimental"
+  ), 
+  j7 = list(
+    journal = "Second Language Research", 
+    label = "Second Language\nResearch",
+    type = "experimental"
+  ), 
+  j8 = list(
+    journal = "Studies in Second Language Acquisition", 
+    label = "Studies in Second\nLanguage Acquisition",
+    type = "experimental"
+  ), 
+  j9 = list(
+    journal = "Bilingualism: Language and Cognition", 
+    label = "Bilingualism: Language and Cognition",
+    type = "experimental"
+  ), 
+  j10 = list(
+    journal = "The Quarterly Journal of Experimental Psychology", 
+    label = "The Quarterly Journal\nof Experimental Psychology",
+    type = "experimental"
+  ), 
+  j11 = list(
+    journal = "Cognition", 
+    label = "Cognition",
+    type = "experimental"
+  ), 
+  j12 = list(
+    journal = "Journal of Memory and Language", 
+    label = "Journal of Memory\nand Language",
+    type = "experimental"
+  ), 
+  j13 = list(
+    journal = "Journal of Experimental Psychology", 
+    label = "Journal of Experimental\nPsychology",
+    type = "experimental"
+  ), 
+  j14 = list(
+    journal = "Learning, Memory, and Cognition", 
+    label = "Learning, Memory,\nand Cognition",
+    type = "experimental"
+  ), 
+  j15 = list(
+    journal = "Language, Cognition, and Neuroscience", 
+    label = "Language, Cognition,\nand Neuroscience",
+    type = "experimental"
+  ), 
+  j16 = list(
+    journal = "Behavioral and Brain Science", 
+    label = "Behavioral and Brain Science",
+    type = "experimental"
+  ), 
+  j17 = list(
+    journal = "Glossa", 
+    label = "Glossa",
+    type = "experimental"
+  ), 
+  j18 = list(
+    journal = "Glossa Psycholinguistics", 
+    label = "Glossa Psycholinguistics",
+    type = "experimental"
+  ), 
+  j19 = list(
+    journal = "Linguistic Approaches to Bilingualism", 
+    label = "Linguistic Approaches\nto Bilingualism",
+    type = "experimental"
+  ), 
+  j20 = list(
+    journal = "Journal of Linguistics", 
+    label = "Journal of Linguistics",
+    type = "theoretical"
+  ), 
+  j21 = list(
+    journal = "Natural Language and Linguistic Theory", 
+    label = "Natural Language and\nLinguistic Theory",
+    type = "theoretical"
+  ), 
+  j22 = list(
+    journal = "Linguistic Inquiry", 
+    label = "Linguistic Inquiry",
+    type = "theoretical"
+  ), 
+  j23 = list(
+    journal = "Probus", 
+    label = "Probus",
+    type = "theoretical"
+  ), 
+  j24 = list(
+    journal = "Language, Cognition and Neuroscience", 
+    label = "Language, Cognition\nand Neuroscience",
+    type = "experimental"
+  ), 
+  j25 = list(
+    journal = "Annual Review of Linguistics", 
+    label = "Annual Review\nof Linguistics",
+    type = "experimental"
+  ), 
+  j26 = list(
+    journal = "Frontiers in Language Science", 
+    label = "Frontiers in Language Science",
+    type = "experimental"
+  ), 
+  j27 = list(
+    journal = "Frontiers in Psychology", 
+    label = "Frontiers in Psychology",
+    type = "experimental"
+  ), 
+  j28 = list(
+    journal = "Languages", 
+    label = "Languages",
+    type = "experimental"
+  ), 
+  j29 = list(
+    journal = "Language", 
+    label = "Language",
+    type = "theoretical"
+  ), 
+  j30 = list(
+    journal = "Borealis", 
+    label = "Borealis",
+    type = "theoretical"
+  ), 
+  j31 = list(
+    journal = "Studia Linguistica", 
+    label = "Studia Linguistica",
+    type = "theoretical"
+  ), 
+  j32 = list(
+    journal = "Acta Linguistica Hungarica", 
+    label = "Acta Linguistica Hungarica",
+    type = "theoretical"
+  ), 
+  j33 = list(
+    journal = "Linguistics", 
+    label = "Linguistics",
+    type = "theoretical"
+  )
+)
+
+journal_filter <- bind_rows(journal_list) |> 
+  mutate(journal = str_to_lower(journal)) |> 
+  write_csv(here("data", "tidy", "journal_list.csv"))
+
+remove_j <- c("frontiers in psychology", "journal of experimental psychology")
+
+terms <- c(
+  "information structure", "information packaging", "topic", "focus", 
+  "information focus", "contrastive focus", "new information", 
+  "old information", "given", "givenness", "discourse anaphor", 
+  "contrastiveness", "presupposition", "theme", "rheme", 
+  "presentational focus"
 )
 
 dat <- read_csv(here("data", "tidy", "scopus_out_tidy.csv")) |> 
-  filter(journal %in% names(journal_filter)) |> 
-  left_join(tibble(labs = journal_filter, journal = names(journal_filter)))
+  mutate(
+    journal = str_to_lower(journal), 
+    contains_kw = str_detect(title, paste(terms, collapse = "|"))
+  ) |> 
+  filter(
+    #journal %in% journal_filter$journal, 
+    #!(journal %in% remove_j), 
+    contains_kw == TRUE
+  ) |> 
+  left_join(journal_filter, by = "journal")
 
 n_hits <- nrow(dat)
 
@@ -145,8 +324,11 @@ hits_df <- function(x = 1960, y = 500, lab) {
   
   return(out)
 }
+```
 
 
+```{r}
+#| label: fig-line-graph
 dat |> 
   group_by(year) |> 
   count() |> 
@@ -155,62 +337,54 @@ dat |>
   geom_path(color = "#cc0033") +
   geom_point(size = 2, pch = 21, fill = "#cc0033", color = "white") + 
   geom_text(
-    data = hits_df(y = 225), 
+    data = hits_df(y = 100), 
     aes(x = x, y = y, label = lab), 
     hjust = 0
   ) + 
-  ds4ling::ds4ling_bw_theme()
+  ds4ling::ds4ling_bw_theme(base_size = 13)
+```
 
-
+```{r}
+#| label: fig-bar-graph
 dat |> 
   ggplot() + 
   aes(x = year) + 
-  geom_histogram(color = "white", fill = "#cc0033", binwidth = 3) + 
+  geom_histogram(color = "white", fill = "#cc0033", binwidth = 5) + 
   geom_text(
-    data = hits_df(), 
+    data = hits_df(y = 200), 
     aes(x = x, y = y, label = lab), 
     hjust = 0
   ) + 
   scale_x_continuous(breaks = seq(1960, 2025, 5)) + 
   labs(y = "Count", x = "Year") +
-  ds4ling::ds4ling_bw_theme()
+  ds4ling::ds4ling_bw_theme(base_size = 13)
+```
 
+```{r}
+#| label: fig-journals
+#| fig-asp: 1.5
 dat |> 
-  group_by(labs) |> 
+  group_by(label) |> 
   count() |> 
   ungroup() |> 
-  mutate(labs = fct_reorder(labs, .x = n)) |> 
-  ggplot() + 
-  aes(y = labs, x = n) + 
-  geom_segment(aes(x = 0, xend = n), linewidth = 2) + 
-  geom_point(size = 4, pch = 21, fill = "#cc0033", color = "white") + 
-  geom_text(
-    data = hits_df(x = 1500, y = 1.25), 
-    aes(x = x, y = y, label = lab), 
-    hjust = 1
-  ) + 
-  labs(y = NULL) + 
-  ds4ling::ds4ling_bw_theme()
-
-dat |> 
-  group_by(labs) |> 
-  count() |> 
-  ungroup() |> 
+  na.omit() |> 
   mutate(
-    prop = n / nrow(dat),  
-    labs = fct_reorder(labs, .x = n)
+    n_total = sum(n), 
+    prop = n / n_total, 
+    label = fct_reorder(label, .x = n)
   ) |> 
   ggplot() + 
-  aes(y = labs, x = prop) + 
+  aes(y = label, x = prop) + 
   geom_segment(aes(x = 0, xend = prop), linewidth = 2) + 
   geom_point(size = 4, pch = 21, fill = "#cc0033", color = "white") + 
   geom_text(
-    data = hits_df(x = 0.3, y = 1.25), 
+    data = hits_df(x = 0.3, y = 1.75), 
     aes(x = x, y = y, label = lab), 
     hjust = 1
   ) + 
   labs(y = NULL) + 
-  ds4ling::ds4ling_bw_theme()
-
+  ds4ling::ds4ling_bw_theme(base_size = 13)
 ```
+
+# References
 

@@ -1,9 +1,30 @@
 
 
-![](README_files/figure-commonmark/play-1.png)
+<div id="fig-line-graph">
 
-![](README_files/figure-commonmark/play-2.png)
+<img src="README_files/figure-commonmark/fig-line-graph-1.png"
+id="fig-line-graph" />
 
-![](README_files/figure-commonmark/play-3.png)
+Figure 1
 
-![](README_files/figure-commonmark/play-4.png)
+</div>
+
+<div id="fig-bar-graph">
+
+<img src="README_files/figure-commonmark/fig-bar-graph-1.png"
+id="fig-bar-graph" />
+
+Figure 2
+
+</div>
+
+<div id="fig-journals">
+
+<img src="README_files/figure-commonmark/fig-journals-1.png"
+id="fig-journals" />
+
+Figure 3
+
+</div>
+
+# References

@@ -1,0 +1,27 @@
+      "TITLE-ABS-KEY({information structure} OR {information packaging} OR 
+        topic OR focus OR {information focus} OR {contrastive focus} OR
+        {new information} OR {old information} OR given OR givenness OR 
+        {discourse anaphor} OR contrastiveness OR presupposition OR 
+        theme OR rheme OR {presentational focus}) AND 
+       EXACTSRCTITLE({Discourse Processes} OR {Journal of Pragmatics} OR 
+         {Psychological Science} OR {Journal of Phonetics} OR 
+         {Journal of Experimental Linguistics} OR 
+         {Applied Psycholinguistics} OR {Second Language Research} OR 
+         {Studies in Second Language Acquisition} OR 
+         {Bilingualism: Language and Cognition} OR 
+         {The Quarterly Journal of Experimental Psychology} OR 
+         {Cognition} OR {Journal of Memory and Language} OR 
+         {Journal of Experimental Psychology} OR 
+         {Learning, Memory, and Cognition} OR 
+         {Language, Cognition, and Neuroscience} OR 
+         {Behavioral and Brain Science} OR {Glossa} OR 
+         {Glossa Psycholinguistics} OR {Linguistic Approaches to Bilingualism} OR 
+         {Journal of Linguistics} OR {Natural Language and Linguistic Theory} OR 
+         {Linguistic Inquiry} OR {Probus} OR 
+         {Language, Cognition and Neuroscience} OR 
+         {Annual Review of Linguistics} OR {Frontiers in Language Science} OR 
+         {Frontiers in Psychology} OR {Languages} OR {Language} OR 
+         {Borealis} OR {Studia Linguistica} OR {Acta Linguistica Hungarica} OR 
+         {Linguistics} OR {Frontiers in Psychology}) AND
+       PUBYEAR = ", i, "AND 
+       SRCTYPE(j)"
