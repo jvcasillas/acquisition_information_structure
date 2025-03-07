@@ -340,7 +340,7 @@ n_dat <- dat |>
 pn_1 <- n_dat |> 
   ggplot() + 
   aes(x = year, y = n) + 
-  geom_path(color = "#cc0033", linewidth = 0.8) +
+  geom_path(color = "#cc0033", linewidth = 0.7) +
   geom_point(size = 1.5, pch = 21, fill = "#cc0033", color = "white") + 
   #scale_x_continuous(breaks = seq(1960, 2025, 5)) + 
   scale_y_continuous(breaks = seq(0, 135, 15)) + 
@@ -353,7 +353,7 @@ pn_2 <- n_dat |>
   filter(year %in% seq(1960, 2025, 5)) |> 
   ggplot() + 
   aes(x = year, y = cum_n) + 
-  geom_path(color = "#cc0033", linewidth = 0.9) +
+  geom_path(color = "#cc0033", linewidth = 0.7) +
   geom_point(size = 2, pch = 21, fill = "#cc0033", color = "white") + 
   geom_text(
     data = hits_df(x = 1990, y = 1500), 
