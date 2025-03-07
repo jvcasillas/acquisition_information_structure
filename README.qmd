@@ -333,7 +333,8 @@ dat |>
   group_by(year) |> 
   count() |> 
   ungroup() |> 
-  mutate(cum_n = cumsum(n)) |> 
+  complete(year = 1960:2025, fill = list(n = 0)) |> 
+  mutate(cum_n = cumsum(n)) |>
   filter(year %in% seq(1960, 2024, 5)) |> 
   ggplot() + 
   aes(x = year, y = n) + 
