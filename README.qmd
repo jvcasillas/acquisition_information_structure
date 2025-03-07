@@ -358,6 +358,7 @@ half_quant <- n_dat |>
   quantile(0.5) 
 
 pn_1 <- n_dat |> 
+  filter(year < 2025) |> 
   ggplot() + 
   aes(x = year, y = n) + 
   geom_path(color = "#cc0033", linewidth = 0.7) +
