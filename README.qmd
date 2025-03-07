@@ -324,12 +324,25 @@ hits_df <- function(x = 1960, y = 500, lab) {
   
   return(out)
 }
+
+quant_df <- function(x = 1990, y = 500, lab) {
+  out <- tibble(
+    x = x, 
+    y = y, 
+    lab = glue("50% of entries\nafter {half_quant}")
+  )
+  
+  return(out)
+}
+
 ```
 
 
 ```{r}
 #| label: fig-line-graph
-#| fig-asp: 0.4
+#| fig-asp: 0.37
+#| fig-dpi: 600
+
 n_dat <- dat |> 
   group_by(year) |> 
   count() |> 
@@ -337,11 +350,23 @@ n_dat <- dat |>
   complete(year = 1960:2025, fill = list(n = 0)) |> 
   mutate(cum_n = cumsum(n)) 
 
+half_quant <- n_dat |> 
+  select(year, n) |> 
+  uncount(n) |> 
+  mutate(count = 1) |> 
+  pull(year) |> 
+  quantile(0.5) 
+
 pn_1 <- n_dat |> 
   ggplot() + 
   aes(x = year, y = n) + 
   geom_path(color = "#cc0033", linewidth = 0.7) +
   geom_point(size = 1.5, pch = 21, fill = "#cc0033", color = "white") + 
+  geom_text(
+    data = hits_df(x = 1960, y = 120), 
+    aes(x = x, y = y, label = lab), 
+    hjust = 0, size = 2
+  ) + 
   #scale_x_continuous(breaks = seq(1960, 2025, 5)) + 
   scale_y_continuous(breaks = seq(0, 135, 15)) + 
   coord_cartesian(ylim = c(0, 135)) + 
@@ -353,13 +378,14 @@ pn_2 <- n_dat |>
   filter(year %in% seq(1960, 2025, 5)) |> 
   ggplot() + 
   aes(x = year, y = cum_n) + 
+  geom_vline(xintercept = half_quant, lty = 3, color = "#666666", linewidth = 0.5) + 
   geom_path(color = "#cc0033", linewidth = 0.7) +
   geom_point(size = 2, pch = 21, fill = "#cc0033", color = "white") + 
   geom_text(
-    data = hits_df(x = 1990, y = 1500), 
+    data = quant_df(x = 2000, y = 1000), 
     aes(x = x, y = y, label = lab), 
     hjust = 0, size = 2
-  ) + 
+  ) +
   #scale_x_continuous(breaks = seq(1960, 2025, 5)) + 
   scale_y_continuous(
     name = "N (cumulative)", position = "right", 
