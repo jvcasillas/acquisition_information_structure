@@ -27,4 +27,27 @@ Figure 3
 
 </div>
 
+<div id="fig-langs">
+
+<img src="README_files/figure-commonmark/fig-langs-1.png"
+id="fig-langs" />
+
+Figure 4
+
+</div>
+
+<div id="fig-l2-prevalence">
+
+<img src="README_files/figure-commonmark/fig-l2-prevalence-1.png"
+id="fig-l2-prevalence" />
+
+Figure 5
+
+</div>
+
+| is_l2 |    n | n_total |      prop |
+|------:|-----:|--------:|----------:|
+|     1 |  226 |    1879 | 0.1202767 |
+|     0 | 1653 |    1879 | 0.8797233 |
+
 # References

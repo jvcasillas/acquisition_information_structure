@@ -22,6 +22,8 @@ library("glue")
 library("stringr")
 library("ggplot2")
 library("forcats")
+library("tidytext")
+library("worldlanguages")
 ```
 
 
@@ -72,7 +74,8 @@ for(i in min_year:max_year){
        SRCTYPE(j)"
     ),
     count = 25,
-    max_count = 5000
+    max_count = 5000, 
+    view = "COMPLETE"
   )
 
   n_records <- res$total_results
@@ -95,22 +98,25 @@ out_df |>
 #| label: tidy-data
 #| eval: false
 
-src_is <- read_csv(here("data", "raw", "2025-03-06_scopus_out.csv")) |>
+src_is <- read_csv(here("data", "raw", "2025-03-13_scopus_out.csv")) |> 
   select(
-    title =  'dc:title',
-    author = 'dc:creator',
-    journal = 'prism:publicationName',
-    issn = 'prism:issn',
-    volume = 'prism:volume',
-    pages = 'prism:pageRange',
-    date = 'prism:coverDate',
-    display_date = 'prism:coverDisplayDate',
-    doi = 'prism:doi',
-    citations = 'citedby-count',
+    title        =  "dc:title",
+    author       = "dc:creator",
+    kw           = "authkeywords", 
+    abstract     = "dc:description", 
+    journal      = "prism:publicationName",
+    issn         = "prism:issn",
+    volume       = "prism:volume",
+    pages        = "prism:pageRange",
+    date         = "prism:coverDate",
+    display_date = "prism:coverDisplayDate",
+    doi          = "prism:doi",
+    citations    = "citedby-count",
   ) |>
   mutate(
     year = lubridate::year(date), 
-    journal = str_replace(journal, "&amp;", "&")
+    journal = str_replace(journal, "&amp;", "&"), 
+    kw = str_to_lower(kw), 
   ) |> 
   filter(!is.na(journal)) |> 
   write_csv(here("data", "tidy", "scopus_out_tidy.csv"))
@@ -442,6 +448,132 @@ dat |>
   ds4ling::ds4ling_bw_theme(base_size = 13) + 
   theme(axis.text.y = element_text(size = 7))
 ```
+
+
+```{r}
+#| label: fig-langs
+#| fig-asp: 0.6
+
+langs <- str_to_lower(language_names$language_en)
+langs <- langs[!(langs %in% c("even", "e"))]
+langs_pattern <- str_c(langs, collapse = "|")
+
+tokenized <- dat |> 
+  select(year, doi, title, kw, abstract) |> 
+  unite(col = mix, title, kw, abstract, sep = " 999 ") |> 
+  unnest_tokens(output = words, input = mix) |> 
+  mutate(words = str_to_lower(words))
+
+tokenized |> 
+  filter(words %in% langs) |> 
+  group_by(doi, words) |> 
+  count() |> 
+  group_by(words) |> 
+  count() |> 
+  arrange(desc(n)) |> 
+  ungroup() |> 
+  mutate(n_total = sum(n), prop = n / n_total) |> 
+  slice(1:20) |> 
+  mutate(
+    words = str_to_title(words), 
+    words = fct_reorder(words, prop, max)
+  ) |> 
+  ggplot() + 
+  aes(x = prop, y = words) + 
+  geom_segment(aes(x = 0, xend = prop), linewidth = 2) + 
+  geom_point(size = 4, pch = 21, fill = "#cc0033", color = "white") + 
+  labs(x = "Proportion", y = NULL) + 
+  ds4ling::ds4ling_bw_theme(base_size = 13) + 
+  #theme(axis.text.y = element_text(size = 7))
+  NULL
+```
+
+
+
+```{r}
+#| label: fig-l2-prevalence
+#| fig-asp: 1.0
+#| fig-height: 1
+#| fig-width: 1
+
+ns_transparent <- function(...) {
+  list(
+    theme_void(...), 
+    theme(strip.text.x = element_text(size = rel(1.5)))
+  )
+}
+
+plot_donut <- function(data, ymax = ymax, ymin = ymin, xmax = 4, 
+                       xmin = 3, fill = category, title = title, 
+                       subtitle = subtitle, ...) {
+  ggplot(data, aes(ymax = ymax, ymin = ymin, xmax = 4, xmin = 3, fill = category)) +
+    geom_rect(show.legend = F, aes(alpha = alpha)) +
+    geom_text(aes(x = label_pos, y = label_pos, label = label, 
+                  size = label_size), 
+      color = "black", show.legend = F) + 
+    scale_size_identity() + 
+    scale_fill_manual(values = c("#cc0033", "black")) +
+    scale_color_manual(values = c("#cc0033", "black")) +
+    scale_alpha_identity() + 
+    coord_polar(theta = "y") +
+    xlim(c(-1, 4)) + 
+    labs(title = title, subtitle = subtitle) + 
+    ns_transparent(...) + 
+    theme(plot.title = element_text(hjust=0.5), 
+      plot.subtitle = element_text(hjust = 0.5))
+}
+
+l2_terms <- c(
+  "SLA", "second language", "L2", "bilingualism", 
+  "language acquisition", "second language acquisition", 
+  "multilingualism", "language learning"
+)
+
+l2_pattern <- str_c(l2_terms, collapse = "|")
+
+lang_info <- dat |> 
+  mutate(
+    is_l2t = str_detect(title, l2_pattern), 
+    is_l2a = str_detect(abstract, l2_pattern), 
+    is_l2k = str_detect(kw, l2_pattern) 
+  ) |> 
+  mutate(
+    is_l2a = if_else(is.na(is_l2a), FALSE, is_l2a), 
+    is_l2 = if_else(is_l2t == TRUE | is_l2a == TRUE, 1, 0)
+  )
+
+l2_props <- lang_info |> 
+  group_by(is_l2) |> 
+  count() |> 
+  ungroup() |> 
+  mutate(n_total = sum(n), prop = n / n_total) |> 
+  arrange(prop)
+
+
+l2_donut <- tibble(
+  category = c("A", "B"),
+  count = l2_props$prop * 100, 
+  fraction = count / 100, 
+  ymax = cumsum(fraction), 
+  ymin = c(0, head(ymax, n = -1)), 
+  label_pos = c(0, 0.5), 
+  label_size = c(6, 2), 
+  label = c("12%", "related to L2"), 
+  alpha = c(1, 0.15)
+  ) |> 
+  plot_donut(base_size = 20, title = NULL, subtitle = NULL)
+
+l2_donut
+```
+
+```{r}
+#| label: tbl-l2-prevalence
+
+l2_props |> 
+  knitr::kable()
+```
+
+
 
 # References
 
