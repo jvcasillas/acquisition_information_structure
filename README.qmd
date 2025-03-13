@@ -462,7 +462,10 @@ tokenized <- dat |>
   select(year, doi, title, kw, abstract) |> 
   unite(col = mix, title, kw, abstract, sep = " 999 ") |> 
   unnest_tokens(output = words, input = mix) |> 
-  mutate(words = str_to_lower(words))
+  mutate(
+    words = str_to_lower(words), 
+    words = if_else(words == "chinese", "mandarin", words)
+  )
 
 tokenized |> 
   filter(words %in% langs) |> 
