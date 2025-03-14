@@ -483,11 +483,12 @@ tokenized |>
   ) |> 
   ggplot() + 
   aes(x = prop, y = words) + 
-  geom_segment(aes(x = 0, xend = prop), linewidth = 2) + 
-  geom_point(size = 4, pch = 21, fill = "#cc0033", color = "white") + 
+  geom_segment(aes(x = 0, xend = prop), linewidth = 1.75) + 
+  geom_point(size = 4.25, pch = 21, fill = "#cc0033", color = "white") + 
+  geom_text(aes(label = n), color = "white", size = 1.5) + 
   labs(x = "Proportion", y = NULL) + 
   ds4ling::ds4ling_bw_theme(base_size = 13) + 
-  #theme(axis.text.y = element_text(size = 7))
+  theme(axis.text.y = element_text(size = 9))
   NULL
 ```
 
@@ -527,7 +528,7 @@ plot_donut <- function(data, ymax = ymax, ymin = ymin, xmax = 4,
 }
 
 l2_terms <- c(
-  "SLA", "second language", "L2", "bilingualism", 
+  "sla", "second language", "l2", "bilingualism", 
   "language acquisition", "second language acquisition", 
   "multilingualism", "language learning"
 )
@@ -536,6 +537,9 @@ l2_pattern <- str_c(l2_terms, collapse = "|")
 
 lang_info <- dat |> 
   mutate(
+    title = str_to_lower(title), 
+    abstract = str_to_lower(abstract), 
+    kw = str_to_lower(kw), 
     is_l2t = str_detect(title, l2_pattern), 
     is_l2a = str_detect(abstract, l2_pattern), 
     is_l2k = str_detect(kw, l2_pattern) 
@@ -561,7 +565,7 @@ l2_donut <- tibble(
   ymin = c(0, head(ymax, n = -1)), 
   label_pos = c(0, 0.5), 
   label_size = c(6, 2), 
-  label = c("12%", "related to L2"), 
+  label = c("15.4%", "related to L2"), 
   alpha = c(1, 0.15)
   ) |> 
   plot_donut(base_size = 20, title = NULL, subtitle = NULL)

@@ -27,6 +27,8 @@ Figure 3
 
 </div>
 
+    NULL
+
 <div id="fig-langs">
 
 <img src="README_files/figure-commonmark/fig-langs-1.png"
@@ -47,7 +49,7 @@ Figure 5
 
 | is_l2 |    n | n_total |      prop |
 |------:|-----:|--------:|----------:|
-|     1 |  226 |    1879 | 0.1202767 |
-|     0 | 1653 |    1879 | 0.8797233 |
+|     1 |  290 |    1879 | 0.1543374 |
+|     0 | 1589 |    1879 | 0.8456626 |
 
 # References
