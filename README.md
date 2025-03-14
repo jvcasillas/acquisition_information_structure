@@ -27,8 +27,6 @@ Figure 3
 
 </div>
 
-    NULL
-
 <div id="fig-langs">
 
 <img src="README_files/figure-commonmark/fig-langs-1.png"
