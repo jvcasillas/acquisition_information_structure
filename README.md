@@ -36,12 +36,21 @@ Figure 4
 
 </div>
 
+<div id="fig-donut">
+
+<img src="README_files/figure-commonmark/fig-donut-1.png"
+id="fig-donut" />
+
+Figure 5
+
+</div>
+
 <div id="fig-l2-prevalence">
 
 <img src="README_files/figure-commonmark/fig-l2-prevalence-1.png"
 id="fig-l2-prevalence" />
 
-Figure 5
+Figure 6
 
 </div>
 

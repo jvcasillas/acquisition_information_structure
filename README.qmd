@@ -493,6 +493,110 @@ tokenized |>
 ```
 
 
+```{r}
+#| label: fig-donut
+#| 
+
+totals <- tokenized |> 
+  filter(words %in% langs) |> 
+  group_by(doi, words) |> 
+  count() |> 
+  group_by(words) |> 
+  count() |> 
+  arrange(desc(n)) |> 
+  ungroup() |> 
+  mutate(
+    n_total = sum(n), 
+    prop = n / n_total, 
+    is_primary = if_else(
+      words %in% c("english", "mandarin", "german", "spanish"), 
+      "yes", "no"
+    )
+  ) |> 
+  arrange(desc(prop))
+
+
+pie_data <- bind_rows(
+  totals |> 
+    select(is_primary, num = n) |> 
+    group_by(is_primary) |> 
+    summarise(n = sum(num), .groups = "drop") |> 
+    arrange(desc(n)) |>
+    mutate(xmin = c(0, cumsum(head(n, -1))),
+           xmax = cumsum(n), ymin = 2, ymax = 4) |>
+    reframe(
+      is_primary = is_primary, words = "all", 
+      n = n, 
+      xmin = xmin, xmax = xmax,
+      ymin = ymin, ymax = ymax, 
+      perc = scales::percent(n / sum(n))
+    ), 
+
+  totals |> 
+    select(words, num = n) |> 
+    group_by(words) |> 
+    summarise(n = sum(num), .groups = "drop") |> 
+    mutate(is_primary = if_else(
+      words %in% c("english", "mandarin", "german", "spanish"), 
+      true = "yes", false = "no")
+      ) |>
+    arrange(desc(n)) |>
+    mutate(xmin = c(0, cumsum(head(n, -1))),
+           xmax = cumsum(n), ymin = 4, ymax = 5) |>
+    reframe(is_primary = is_primary, 
+            words = words, n = n, xmin = xmin, xmax = xmax,
+            ymin = ymin, ymax = ymax, 
+            perc = scales::percent(n / sum(n)))
+  ) |> 
+  mutate(
+    is_primary = fct_relevel(is_primary, "yes"), 
+    words = fct_reorder(words, n, max), 
+    label = str_to_title(words), 
+    label = if_else(words == "all", perc, label), 
+    label_alpha = if_else(n > 50, 1, 0), 
+    label_n = case_when(
+      perc  == "51.4%" ~ 300,
+      perc  == "48.6%" ~ 900, 
+      label == "English" ~ 175, 
+      label == "Mandarin" ~ 400, 
+      label == "German" ~ 500, 
+      label == "Spanish" ~ 600
+    ), 
+    inner_outer = if_else(label %in% c("51.4%", "48.6%"), 3, 4.5)
+  ) 
+
+pie_data |> 
+  ggplot() +
+  geom_rect(
+    aes(
+      xmin = xmin, xmax = xmax, 
+      ymin = ymin, ymax = ymax, fill = is_primary
+    ),
+    color = "grey95", 
+  ) +
+  geom_text(
+    aes(x = label_n, y = inner_outer, label = label, alpha = label_alpha), 
+    size = 2
+  ) + 
+  scale_y_continuous(limits = c(0, 5)) +
+  scale_alpha_continuous(range = c(0.75, 1), guide = "none") + 
+  scale_fill_viridis_d(
+    name = NULL, begin = 0.6, end = 0.8,  direction = -1, 
+    labels = c("English, Mandarin\nGerman, Spanish", 
+               "All other languages\n(n=106)")
+    ) + 
+  coord_polar() +
+  theme_void(base_family = "Palatino") + 
+  theme(
+    legend.position = "left", 
+    legend.key.spacing.y = unit(0.5, 'lines'), 
+    legend.text = element_text(hjust = 0.5)
+  )
+```
+
+
+
+
 
 ```{r}
 #| label: fig-l2-prevalence
@@ -555,7 +659,6 @@ l2_props <- lang_info |>
   ungroup() |> 
   mutate(n_total = sum(n), prop = n / n_total) |> 
   arrange(prop)
-
 
 l2_donut <- tibble(
   category = c("A", "B"),
