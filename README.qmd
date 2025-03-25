@@ -28,9 +28,29 @@ library("patchwork")
 ```
 
 
+Scopus search using `rscopus` on the following terms: 
+
+- Information Structure
+- Information Packaging
+- Topic
+- Focus
+- Information Focus
+- Contrastive Focus
+- New Information
+- Old Information
+- Given
+- Givenness
+- Discourse anaphor
+- Contrastiveness
+- Presupposition
+- Theme
+- Rheme
+- Presentational Focus
+
 ```{r}
 #| label: scopus-query
 #| eval: false
+#| echo: true
 #
 # Getting publication data via scopus
 #
@@ -51,26 +71,6 @@ for(i in min_year:max_year){
         {new information} OR {old information} OR given OR givenness OR 
         {discourse anaphor} OR contrastiveness OR presupposition OR 
         theme OR rheme OR {presentational focus}) AND 
-       EXACTSRCTITLE({Discourse Processes} OR {Journal of Pragmatics} OR 
-         {Psychological Science} OR {Journal of Phonetics} OR 
-         {Journal of Experimental Linguistics} OR 
-         {Applied Psycholinguistics} OR {Second Language Research} OR 
-         {Studies in Second Language Acquisition} OR 
-         {Bilingualism: Language and Cognition} OR 
-         {The Quarterly Journal of Experimental Psychology} OR 
-         {Cognition} OR {Journal of Memory and Language} OR 
-         {Journal of Experimental Psychology} OR 
-         {Learning, Memory, and Cognition} OR 
-         {Language, Cognition, and Neuroscience} OR 
-         {Behavioral and Brain Science} OR {Glossa} OR 
-         {Glossa Psycholinguistics} OR {Linguistic Approaches to Bilingualism} OR 
-         {Journal of Linguistics} OR {Natural Language and Linguistic Theory} OR 
-         {Linguistic Inquiry} OR {Probus} OR 
-         {Language, Cognition and Neuroscience} OR 
-         {Annual Review of Linguistics} OR {Frontiers in Language Science} OR 
-         {Frontiers in Psychology} OR {Languages} OR {Language} OR 
-         {Borealis} OR {Studia Linguistica} OR {Acta Linguistica Hungarica} OR 
-         {Linguistics} OR {Frontiers in Psychology}) AND
        PUBYEAR = ", i, "AND 
        SRCTYPE(j)"
     ),
@@ -122,6 +122,42 @@ src_is <- read_csv(here("data", "raw", "2025-03-13_scopus_out.csv")) |>
   filter(!is.na(journal)) |> 
   write_csv(here("data", "tidy", "scopus_out_tidy.csv"))
 ```
+
+In order to remove irrelevant hits, post-processsing also filtered the data set to only include the following journals: 
+
+- Discourse Processes
+- Journal of Pragmatics
+- Psychological Science
+- Journal of Phonetics
+- Journal of Experimental Linguistics
+- Applied Psycholinguistics
+- Second Language Research
+- Studies in Second Language Acquisition
+- Bilingualism: Language and Cognition
+- The Quarterly Journal of Experimental Psychology
+- Cognition
+- Journal of Memory and Language
+- Journal of Experimental Psychology
+- Learning, Memory, and Cognition
+- Language, Cognition, and Neuroscience
+- Behavioral and Brain Science
+- Glossa
+- Glossa Psycholinguistics
+- Linguistic Approaches to Bilingualism
+- Journal of Linguistics
+- Natural Language and Linguistic Theory
+- Linguistic Inquiry
+- Probus
+- Language, Cognition and Neuroscience
+- Annual Review of Linguistics
+- Frontiers in Language Science
+- Frontiers in Psychology
+- Languages
+- Language
+- Borealis
+- Studia Linguistica
+- Acta Linguistica Hungarica
+- Linguistics
 
 ```{r}
 #| label: play
@@ -345,10 +381,14 @@ quant_df <- function(x = 1990, y = 500, lab) {
 ```
 
 
+Next, we plot publications over time (@fig-line-graph): 
+
+
 ```{r}
 #| label: fig-line-graph
 #| fig-asp: 0.37
 #| fig-dpi: 600
+#| fig-cap: Number of articles per year (left) and cumulative totals in five-year intervals featuring information-structure terms in Scopus, 1960-2024. 
 
 n_dat <- dat |> 
   group_by(year) |> 
@@ -407,8 +447,13 @@ pn_2 <- n_dat |>
 pn_1 +  pn_2
 ```
 
+
+We can also visualize the number of entries in a histogram (@fig-bar-graph, not included in the editorial): 
+
 ```{r}
 #| label: fig-bar-graph
+#| fig-cap: Number of articles per year in five-year intervals featuring information-structure terms in Scopus, 1960-2024. 
+
 dat |> 
   ggplot() + 
   aes(x = year) + 
@@ -423,9 +468,13 @@ dat |>
   ds4ling::ds4ling_bw_theme(base_size = 13)
 ```
 
+
+@fig-journals (not included in the editorial) looks at the number of publications from the journal list we specified.
+
 ```{r}
 #| label: fig-journals
 #| fig-asp: 1
+#| fig-cap: Distribution of entries from our sample based on journal.
 dat |> 
   group_by(label) |> 
   count() |> 
@@ -451,9 +500,25 @@ dat |>
 ```
 
 
+We searched the title, abstracts, and kewords for (1) evidence of what language each article was studying, and (2) evidence that the article was about SLA/Bilingualism. 
+For (1), we used the [worldlanguages](www.jvcasillas.com/worldlanguages) package to get a list of language names (scraped from https://en.wikipedia.org/wiki/List_of_language_names). 
+The list includes 599 languages. 
+For (2), we searched the title, abstract, and keywords for any of the following terms: 
+- Second Language Acquisition
+- SLA
+- Second language
+- L2
+- Bilingualism
+- Multilingualism
+- Language acquisition
+- Language learning
+
+@fig-langs shows the porportion of the top 20 languages we could identify in our sample. 
+
 ```{r}
 #| label: fig-langs
 #| fig-asp: 0.6
+#| fig-cap: Proportion of top 20 languages from scopus sample.
 
 langs <- str_to_lower(language_names$language_en)
 langs <- langs[!(langs %in% c("even", "e"))]
@@ -524,11 +589,12 @@ p_tw <- title_words |>
 p_tw
 ```
 
-
+@fig-donut (Figure 2 in the editorial) illustrates how the majority of articles come from English, Mandarin, German or Spanish. 
 
 ```{r}
 #| label: fig-donut
 #| fig-asp: 1
+#| fig-cap: Proportion of Scopus articles on information structure by language, 1960-2024. The inner rings represent the disproportionate distribution between English, Mandarin, German, and Spanish versus all other languages in the sample (n = 110). The outer ring illustrates the proportion of studies related to SLA/Bilingualism (opaque sections, approx. 25%) versus studies involving monolinguals (non-opaque sections, 75%). 
 
 totals <- lang_info |> 
   filter(words %in% langs) |> 
@@ -702,9 +768,7 @@ p_donut
 ```
 
 
-
-
-
+Approximately 25% of our sample could be identified as dealing with SLA/Bilingualism (See @fig-l2-prevalence and Table 1). 
 
 ```{r}
 #| label: fig-l2-prevalence
@@ -772,8 +836,14 @@ l2_donut
 #| label: tbl-l2-prevalence
 
 l2_props |> 
-  knitr::kable()
+  knitr::kable(label = "tbl-l2-prevalence")
 ```
 
 # References
 
+- Carminati, M. N. (2002). The processing of Italian subject pronouns. Boston: University of Massachusetts.
+- Ferreira, F., Engelhardt, P. E., and Jones, M. W. (2009). “Good enough language processing: a satisfying approach” in Proceedings of the 31st annual conference of the cognitive science society. eds. N. Taatgen, H. Rijn, J. Nerbonne and L. Schomaker (Austin, TX: Cognitive Science Society), 413–418.
+- Féry, C., & Ishihara, S. (Eds.). (2016). The Oxford handbook of information structure. Oxford, Oxford University Press.
+- Krifka, M. (2008). Basic notions of information structure. Acta Linguistica Hungarica, 55(3–4), 243–276. 
+- Krifka, M., & Musan, R. (Eds.). (2012). The expression of information structure. (Berlin: De Gruyter Mouton).
+- Sorace, A. (2011). Pinning down the concept of “interface” in bilingualism. Linguis. Approach. Bilingual. 1, 1–33. 
