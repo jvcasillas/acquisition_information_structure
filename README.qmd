@@ -24,6 +24,7 @@ library("ggplot2")
 library("forcats")
 library("tidytext")
 library("worldlanguages")
+library("patchwork")
 ```
 
 
@@ -458,178 +459,6 @@ langs <- str_to_lower(language_names$language_en)
 langs <- langs[!(langs %in% c("even", "e"))]
 langs_pattern <- str_c(langs, collapse = "|")
 
-tokenized <- dat |> 
-  select(year, doi, title, kw, abstract) |> 
-  unite(col = mix, title, kw, abstract, sep = " 999 ") |> 
-  unnest_tokens(output = words, input = mix) |> 
-  mutate(
-    words = str_to_lower(words), 
-    words = if_else(words == "chinese", "mandarin", words)
-  )
-
-tokenized |> 
-  filter(words %in% langs) |> 
-  group_by(doi, words) |> 
-  count() |> 
-  group_by(words) |> 
-  count() |> 
-  arrange(desc(n)) |> 
-  ungroup() |> 
-  mutate(n_total = sum(n), prop = n / n_total) |> 
-  slice(1:20) |> 
-  mutate(
-    words = str_to_title(words), 
-    words = fct_reorder(words, prop, max)
-  ) |> 
-  ggplot() + 
-  aes(x = prop, y = words) + 
-  geom_segment(aes(x = 0, xend = prop), linewidth = 1.75) + 
-  geom_point(size = 4.25, pch = 21, fill = "#cc0033", color = "white") + 
-  geom_text(aes(label = n), color = "white", size = 1.5) + 
-  labs(x = "Proportion", y = NULL) + 
-  ds4ling::ds4ling_bw_theme(base_size = 13) + 
-  theme(axis.text.y = element_text(size = 9)) + 
-  NULL
-```
-
-
-```{r}
-#| label: fig-donut
-#| 
-
-totals <- tokenized |> 
-  filter(words %in% langs) |> 
-  group_by(doi, words) |> 
-  count() |> 
-  group_by(words) |> 
-  count() |> 
-  arrange(desc(n)) |> 
-  ungroup() |> 
-  mutate(
-    n_total = sum(n), 
-    prop = n / n_total, 
-    is_primary = if_else(
-      words %in% c("english", "mandarin", "german", "spanish"), 
-      "yes", "no"
-    )
-  ) |> 
-  arrange(desc(prop))
-
-
-pie_data <- bind_rows(
-  totals |> 
-    select(is_primary, num = n) |> 
-    group_by(is_primary) |> 
-    summarise(n = sum(num), .groups = "drop") |> 
-    arrange(desc(n)) |>
-    mutate(xmin = c(0, cumsum(head(n, -1))),
-           xmax = cumsum(n), ymin = 2, ymax = 4) |>
-    reframe(
-      is_primary = is_primary, words = "all", 
-      n = n, 
-      xmin = xmin, xmax = xmax,
-      ymin = ymin, ymax = ymax, 
-      perc = scales::percent(n / sum(n))
-    ), 
-
-  totals |> 
-    select(words, num = n) |> 
-    group_by(words) |> 
-    summarise(n = sum(num), .groups = "drop") |> 
-    mutate(is_primary = if_else(
-      words %in% c("english", "mandarin", "german", "spanish"), 
-      true = "yes", false = "no")
-      ) |>
-    arrange(desc(n)) |>
-    mutate(xmin = c(0, cumsum(head(n, -1))),
-           xmax = cumsum(n), ymin = 4, ymax = 5) |>
-    reframe(is_primary = is_primary, 
-            words = words, n = n, xmin = xmin, xmax = xmax,
-            ymin = ymin, ymax = ymax, 
-            perc = scales::percent(n / sum(n)))
-  ) |> 
-  mutate(
-    is_primary = fct_relevel(is_primary, "yes"), 
-    words = fct_reorder(words, n, max), 
-    label = str_to_title(words), 
-    label = if_else(words == "all", perc, label), 
-    label_alpha = if_else(n > 50, 1, 0), 
-    label_n = case_when(
-      perc  == "51.4%" ~ 300,
-      perc  == "48.6%" ~ 900, 
-      label == "English" ~ 175, 
-      label == "Mandarin" ~ 400, 
-      label == "German" ~ 500, 
-      label == "Spanish" ~ 600
-    ), 
-    inner_outer = if_else(label %in% c("51.4%", "48.6%"), 3, 4.5)
-  ) 
-
-pie_data |> 
-  ggplot() +
-  geom_rect(
-    aes(
-      xmin = xmin, xmax = xmax, 
-      ymin = ymin, ymax = ymax, fill = is_primary
-    ),
-    color = "grey95", 
-  ) +
-  geom_text(
-    aes(x = label_n, y = inner_outer, label = label, alpha = label_alpha), 
-    size = 2
-  ) + 
-  scale_y_continuous(limits = c(0, 5)) +
-  scale_alpha_continuous(range = c(0.75, 1), guide = "none") + 
-  scale_fill_viridis_d(
-    name = NULL, begin = 0.6, end = 0.8,  direction = -1, 
-    labels = c("English, Mandarin\nGerman, Spanish", 
-               "All other languages\n(n=106)")
-    ) + 
-  coord_polar() +
-  theme_void(base_family = "Palatino") + 
-  theme(
-    legend.position = "left", 
-    legend.key.spacing.y = unit(0.5, 'lines'), 
-    legend.text = element_text(hjust = 0.5)
-  )
-```
-
-
-
-
-
-```{r}
-#| label: fig-l2-prevalence
-#| fig-asp: 1.0
-#| fig-height: 1
-#| fig-width: 1
-
-ns_transparent <- function(...) {
-  list(
-    theme_void(...), 
-    theme(strip.text.x = element_text(size = rel(1.5)))
-  )
-}
-
-plot_donut <- function(data, ymax = ymax, ymin = ymin, xmax = 4, 
-                       xmin = 3, fill = category, title = title, 
-                       subtitle = subtitle, ...) {
-  ggplot(data, aes(ymax = ymax, ymin = ymin, xmax = 4, xmin = 3, fill = category)) +
-    geom_rect(show.legend = F, aes(alpha = alpha)) +
-    geom_text(aes(x = label_pos, y = label_pos, label = label, 
-                  size = label_size), 
-      color = "black", show.legend = F) + 
-    scale_size_identity() + 
-    scale_fill_manual(values = c("#cc0033", "black")) +
-    scale_color_manual(values = c("#cc0033", "black")) +
-    scale_alpha_identity() + 
-    coord_polar(theta = "y") +
-    xlim(c(-1, 4)) + 
-    labs(title = title, subtitle = subtitle) + 
-    ns_transparent(...) + 
-    theme(plot.title = element_text(hjust=0.5), 
-      plot.subtitle = element_text(hjust = 0.5))
-}
 
 l2_terms <- c(
   "sla", "second language", "l2", "bilingualism", 
@@ -651,14 +480,277 @@ lang_info <- dat |>
   mutate(
     is_l2a = if_else(is.na(is_l2a), FALSE, is_l2a), 
     is_l2 = if_else(is_l2t == TRUE | is_l2a == TRUE, 1, 0)
-  )
+  ) |>
+  select(year, doi, title, kw, abstract, is_l2) |> 
+  unite(
+    col = mix, 
+    title, kw, abstract, 
+    sep = " 999 ", remove = F
+  ) |> 
+  unnest_tokens(output = words, input = mix) |> 
+  mutate(
+    words = str_to_lower(words), 
+    words = if_else(words == "chinese", "mandarin", words)
+  ) |> 
+  select(year, doi, title, words, is_l2)
 
-l2_props <- lang_info |> 
-  group_by(is_l2) |> 
+title_words <- lang_info |> 
+  filter(words %in% langs) |> 
+  group_by(title, words) |> 
   count() |> 
+  ungroup()
+
+p_tw <- title_words |> 
+  group_by(words) |> 
+  count() |> 
+  arrange(desc(n)) |> 
   ungroup() |> 
   mutate(n_total = sum(n), prop = n / n_total) |> 
-  arrange(prop)
+  slice(1:20) |> 
+  mutate(
+    words = str_to_title(words), 
+    words = fct_reorder(words, prop, max)
+  ) |> 
+  ggplot() + 
+  aes(x = prop, y = words) + 
+  geom_segment(aes(x = 0, xend = prop), linewidth = 1.75) + 
+  geom_point(size = 4.25, pch = 21, fill = "#cc0033", color = "white") + 
+  geom_text(aes(label = n), color = "white", size = 1.5) + 
+  labs(x = "Proportion", y = NULL) + 
+  ds4ling::ds4ling_bw_theme(base_size = 13) + 
+  theme(axis.text.y = element_text(size = 9)) + 
+  NULL
+
+p_tw
+```
+
+
+
+```{r}
+#| label: fig-donut
+#| fig-asp: 1
+
+totals <- lang_info |> 
+  filter(words %in% langs) |> 
+  group_by(title, words) |> 
+  count() |> 
+  group_by(words) |> 
+  count() |> 
+  arrange(desc(n)) |> 
+  ungroup() |> 
+  mutate(
+    n_total = sum(n), 
+    prop = n / n_total, 
+    is_primary = if_else(
+      words %in% c("english", "mandarin", "german", "spanish"), 
+      "yes", "no"
+    )
+  ) |> 
+  arrange(desc(prop))
+
+lang_l2_counts <- lang_info |> 
+  filter(words %in% langs) |> 
+  group_by(title, words, is_l2) |> 
+  count() |> 
+  group_by(words, is_l2) |> 
+  count() |> 
+  ungroup() |> 
+  arrange(is_l2, desc(n)) |> 
+  complete(words, is_l2, fill = list(n = 0)) |> 
+  rename(langs = words, num = n) |> 
+  mutate(is_l2 = if_else(is_l2 == 0, "no", "yes"))
+
+order <- lang_l2_counts |> 
+  group_by(langs) |> 
+  summarise(n = sum(num), .groups = "drop") |> 
+  arrange(desc(n)) |>
+  mutate(xmin = c(0, cumsum(head(n, -1))),
+         xmax = cumsum(n), ymin = 5, ymax = 5) |> 
+  transmute(langs, order = row_number())
+
+inner <- title_words |> 
+  select(langs = words, n) |> 
+  group_by(langs) |> 
+  count() |> 
+  ungroup() |> 
+  mutate(
+    num = n, 
+    is_primary = if_else(
+      langs %in% c("english", "mandarin", "german", "spanish"), 
+      "yes", "no"
+    ) 
+  ) |> 
+  group_by(is_primary) |> 
+  summarise(n = sum(num), .groups = "drop") |> 
+  arrange(desc(n)) |> 
+  mutate(
+    prop = n / sum(n), 
+    xmin = c(0, cumsum(head(prop, -1))),
+    xmax = cumsum(prop), 
+    ymin = 3, ymax = 4
+  ) |> 
+  reframe(
+    is_primary = is_primary, langs = "all", 
+    is_l2 = "combined", n = n,
+    xmin = xmin, xmax = xmax,
+    ymin = ymin, ymax = ymax, 
+    perc = scales::percent(n / sum(n))
+  ) 
+
+middle <- totals |> 
+  select(langs = words, num = n) |> 
+  group_by(langs) |> 
+  summarise(n = sum(num), .groups = "drop") |> 
+  mutate(is_primary = if_else(
+    langs %in% c("english", "mandarin", "german", "spanish"), 
+    true = "yes", false = "no")
+    ) |>
+  arrange(desc(n)) |>
+  mutate(
+    prop = n / sum(n), 
+    xmin = c(0, cumsum(head(prop, -1))),
+    xmax = cumsum(prop), ymin = 4, ymax = 5) |> 
+  mutate(
+    is_primary = if_else(
+      langs %in% c("english", "mandarin", "german", "spanish"), 
+      "yes", "no"
+    ) 
+  ) |> 
+  reframe(
+    is_primary = is_primary, langs = langs, 
+    is_l2 = "combined", n = n, 
+    xmin = xmin, xmax = xmax,
+    ymin = ymin, ymax = ymax, 
+    perc = scales::percent(n / sum(n))
+  ) 
+
+outer <- lang_l2_counts |> 
+  mutate(
+    is_primary = if_else(
+      langs %in% c("english", "mandarin", "german", "spanish"), 
+      "yes", "no"
+    ) 
+  ) |> 
+  left_join(order, by = "langs") |> 
+  arrange(order) |> 
+  mutate(
+    prop = num / sum(num), 
+    xmin = c(0, cumsum(head(prop, -1))),
+    xmax = cumsum(prop), ymin = 5, ymax = 6
+  ) |> 
+  reframe(
+    is_primary = is_primary, langs = langs, 
+    is_l2 = is_l2, n = num, 
+    xmin = xmin, xmax = xmax,
+    ymin = ymin, ymax = ymax, 
+    perc = scales::percent(n / sum(n))
+  )
+
+p_donut <- bind_rows(inner, middle, outer) |>
+  mutate(
+    is_primary = fct_relevel(is_primary, "yes"), 
+    label = str_to_title(langs), 
+    label = if_else(langs == "all", perc, label), 
+    label_alpha = if_else(n > 50, 1, NA), 
+    label_n = case_when(
+      perc  == "52%" ~ 0.25,
+      perc  == "48%" ~ 0.75, 
+      label == "English" ~ 0.18, 
+      label == "Mandarin" ~ 0.35, 
+      label == "German" ~ 0.43, 
+      label == "Spanish" ~ 0.49
+    ), 
+    inner_outer = if_else(label %in% c("52%", "48%"), 3.5, 4.5), 
+    angle = case_when(
+      label == "English" ~ 0, 
+      label == "Mandarin" ~ -35, 
+      label == "German" ~ -60, 
+      label == "Spanish" ~ -90, 
+      TRUE ~ 0
+    )
+  ) |> 
+  ggplot() +
+  geom_rect(
+    aes(
+      xmin = xmin, xmax = xmax, alpha = is_l2, 
+      ymin = ymin, ymax = ymax, fill = is_primary
+    ),
+    color = "grey95", 
+  ) + 
+  geom_text(
+    aes(x = label_n, y = inner_outer, label = label, angle = angle), 
+    size = 3.5, color = "white"
+  ) + 
+  scale_y_continuous(limits = c(2.5, 6)) +
+  scale_alpha_manual(
+    name = NULL, values = c(1, 1, 0.5), 
+    guide = "none") + 
+  scale_fill_manual(
+    name = NULL, values = c("#cc0033", "#888888"), 
+    labels = c("English, Mandarin\nGerman, Spanish", 
+               "Other languages\n(n=106)")
+  ) + 
+  coord_polar() + 
+  theme_void(base_family = "Palatino") + 
+  theme(
+    legend.position = "bottom", 
+    legend.key.spacing.y = unit(0.5, 'lines'), 
+    legend.text = element_text(hjust = 0.5)
+  )
+
+p_donut
+```
+
+
+
+
+
+
+```{r}
+#| label: fig-l2-prevalence
+#| fig-asp: 1.0
+#| fig-height: 1
+#| fig-width: 1
+
+ns_transparent <- function(...) {
+  list(
+    theme_void(...), 
+    theme(strip.text.x = element_text(size = rel(1.5)))
+  )
+}
+
+plot_donut <- function(
+  data, ymax = ymax, ymin = ymin, xmax = 4, 
+  xmin = 3, fill = category, title = title, 
+  subtitle = subtitle, ...) {
+  ggplot(data) + 
+  aes(
+    ymax = ymax, ymin = ymin, 
+    xmax = 4, xmin = 3, fill = category
+  ) +
+  geom_rect(show.legend = F, aes(alpha = alpha)) +
+  geom_text(
+    aes(x = label_pos, y = label_pos, label = label, 
+        size = label_size), 
+    color = "black", show.legend = F) + 
+  scale_size_identity() + 
+  scale_fill_manual(values = c("#cc0033", "black")) +
+  scale_color_manual(values = c("#cc0033", "black")) +
+  scale_alpha_identity() + 
+  coord_polar(theta = "y") +
+  xlim(c(-1, 4)) + 
+  labs(title = title, subtitle = subtitle) + 
+  ns_transparent(...) + 
+  theme(plot.title = element_text(hjust=0.5), 
+    plot.subtitle = element_text(hjust = 0.5))
+}
+
+l2_props <- outer |> 
+  group_by(is_l2) |> 
+  mutate(prop = n / sum(n)) |> 
+  summarize(n = sum(n)) |> 
+  mutate(n_total = sum(n), prop = n / n_total) |> 
+  arrange(n)
 
 l2_donut <- tibble(
   category = c("A", "B"),
@@ -667,8 +759,8 @@ l2_donut <- tibble(
   ymax = cumsum(fraction), 
   ymin = c(0, head(ymax, n = -1)), 
   label_pos = c(0, 0.5), 
-  label_size = c(5.5, 2), 
-  label = c("15.4%", "related to L2"), 
+  label_size = c(5, 2), 
+  label = c("25.4%", "related to L2"), 
   alpha = c(1, 0.15)
   ) |> 
   plot_donut(base_size = 20, title = NULL, subtitle = NULL)
@@ -682,8 +774,6 @@ l2_donut
 l2_props |> 
   knitr::kable()
 ```
-
-
 
 # References
 
