@@ -140,8 +140,8 @@ Figure 3: Distribution of entries from our sample based on journal.
 We searched the title, abstracts, and kewords for (1) evidence of what
 language each article was studying, and (2) evidence that the article
 was about SLA/Bilingualism. For (1), we used the
-[worldlanguages](www.jvcasillas.com/worldlanguages) package to get a
-list of language names (scraped from
+[worldlanguages](https://www.jvcasillas.com/worldlanguages) package to
+get a list of language names (scraped from
 https://en.wikipedia.org/wiki/List_of_language_names). The list includes
 599 languages. For (2), we searched the title, abstract, and keywords
 for any of the following terms: - Second Language Acquisition - SLA -
