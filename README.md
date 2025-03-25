@@ -144,9 +144,16 @@ was about SLA/Bilingualism. For (1), we used the
 get a list of language names (scraped from
 https://en.wikipedia.org/wiki/List_of_language_names). The list includes
 599 languages. For (2), we searched the title, abstract, and keywords
-for any of the following terms: - Second Language Acquisition - SLA -
-Second language - L2 - Bilingualism - Multilingualism - Language
-acquisition - Language learning
+for any of the following terms:
+
+- Second Language Acquisition
+- SLA
+- Second language
+- L2
+- Bilingualism
+- Multilingualism
+- Language acquisition
+- Language learning
 
 <a href="#fig-langs" class="quarto-xref">Figure 4</a> shows the
 porportion of the top 20 languages we could identify in our sample.
