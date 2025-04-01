@@ -713,6 +713,8 @@ outer <- lang_l2_counts |>
     perc = scales::percent(n / sum(n))
   )
 
+outer_label <- "Lighter shades of red and grey \nindicate research on acquisition\nor bilingualism"
+
 p_donut <- bind_rows(inner, middle, outer) |>
   mutate(
     is_primary = fct_relevel(is_primary, "yes"), 
@@ -750,19 +752,30 @@ p_donut <- bind_rows(inner, middle, outer) |>
   ) + 
   scale_y_continuous(limits = c(2.5, 6)) +
   scale_alpha_manual(
-    name = NULL, values = c(1, 1, 0.5), 
-    guide = "none") + 
+    guide = "none", 
+    name = NULL, values = c(1, 1, 0.5)) + 
   scale_fill_manual(
     name = NULL, values = c("#cc0033", "#888888"), 
     labels = c("English, Mandarin\nGerman, Spanish", 
                "Other languages\n(n=106)")
   ) + 
-  coord_polar() + 
+  geom_text(
+    data = tibble(x = 0.32, y = I(0.5), label = outer_label),
+    aes(x = x, y = y, label = label), 
+    size = 3, hjust = 0
+  ) + 
+  geom_curve(
+    data = tibble(x = 0.3, xend = 0.87, y = I(0.5), yend = I(0.5)), 
+    aes(x = x, xend = xend, y = y, yend = yend), 
+    curvature = 0.2, arrow = arrow(length = unit(0.12, "inches"), type = "closed")
+  ) + 
+  coord_polar(clip = "off") + 
   theme_void(base_family = "Palatino") + 
   theme(
-    legend.position = "bottom", 
+    legend.position = "right", 
     legend.key.spacing.y = unit(0.5, 'lines'), 
-    legend.text = element_text(hjust = 0.5)
+    legend.text = element_text(hjust = 0.5), 
+    plot.margin = unit(c(0, 0, 0, 0), "lines")
   )
 
 p_donut
