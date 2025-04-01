@@ -727,7 +727,11 @@ p_donut <- bind_rows(inner, middle, outer) |>
       label == "English" ~ 0.18, 
       label == "Mandarin" ~ 0.35, 
       label == "German" ~ 0.43, 
-      label == "Spanish" ~ 0.49
+      label == "Spanish" ~ 0.49, 
+      label == "French" ~ 0.54, 
+      label == "Korean" ~ 0.58, 
+      label == "Japanese" ~ 0.62, 
+      label == "Dutch" ~ 0.653 
     ), 
     inner_outer = if_else(label %in% c("52%", "48%"), 3.5, 4.5), 
     angle = case_when(
@@ -735,6 +739,10 @@ p_donut <- bind_rows(inner, middle, outer) |>
       label == "Mandarin" ~ -35, 
       label == "German" ~ -60, 
       label == "Spanish" ~ -90, 
+      label == "French" ~ -107, 
+      label == "Korean" ~ -120, 
+      label == "Japanese" ~ -133, 
+      label == "Dutch" ~ -146, 
       TRUE ~ 0
     )
   ) |> 
